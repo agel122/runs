@@ -1,4 +1,4 @@
-from rest_framework import viewsets, generics, mixins
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Max, Avg, Q
@@ -6,12 +6,7 @@ from .models import Run
 from .serializers import RunSerializer
 
 
-class RunViewSet(viewsets.ModelViewSet):
-    queryset = Run.objects.all()
-    serializer_class = RunSerializer
-
-
-class MyAdditionalView(APIView):
+class AverageData(APIView):
     def get(self, request):
         data_all = Run.objects.all()
         distance_max = Run.objects.order_by('-distance').first()
@@ -34,35 +29,7 @@ class MyAdditionalView(APIView):
         })
 
 
-class MyNewAdditionalView(viewsets.ModelViewSet):
-    queryset = Run.objects.all()
-    serializer_class = RunSerializer
-
-    def list(self, request):
-        data_all = Run.objects.all()
-        distance_max = Run.objects.order_by('-distance').first()
-        serializer1 = RunSerializer(data_all, many=True)
-        serializer2 = RunSerializer(distance_max)
-        return Response({
-            'data': serializer1.data,
-            'max_distance': serializer2.data,
-        })
-
-
-class MyFilteredData(generics.ListAPIView):
-
-    serializer_class = RunSerializer
-
-    def get_queryset(self):
-        queryset = Run.objects.all()
-        start_date = self.request.query_params.get('start_date')
-        end_date = self.request.query_params.get('end_date')
-        if start_date is not None and end_date is not None:
-            queryset = queryset.filter(Q(date__gte=start_date) & Q(date__lte=end_date))
-        return queryset
-
-
-class MySummaryViewset(viewsets.ModelViewSet):
+class AllData(viewsets.ModelViewSet):
     queryset = Run.objects.all()
     serializer_class = RunSerializer
 
