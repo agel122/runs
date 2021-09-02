@@ -7,7 +7,7 @@ router = DefaultRouter()
 router.register('all_runs', AllData, basename='all_runs')
 
 urlpatterns = [
-    path('average_data', AverageData.as_view(), name='average_data'),
+    path('average_data/', AverageData.as_view(), name='average_data'),
 ]
 
 urlpatterns += router.urls
