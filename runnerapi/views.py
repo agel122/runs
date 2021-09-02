@@ -1,10 +1,20 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
+from rest_framework.reverse import reverse
 from django.db.models import Max, Avg, Q
 from .models import Run
 from .serializers import RunSerializer
 
+
+""""@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'all_runs': reverse('all_runs', request=request, format=format),
+        'average_data': reverse('average_data', request=request, format=format)
+    })
+"""
 
 class AverageData(APIView):
     def get(self, request):
@@ -40,6 +50,7 @@ class AllData(viewsets.ModelViewSet):
         if start_date is not None and end_date is not None:
             queryset = queryset.filter(Q(date__gte=start_date) & Q(date__lte=end_date))
         return queryset
+
 
 
 
