@@ -11,7 +11,7 @@ from rest_framework import status
 @api_view(['GET'])
 def api_root(request, format=None):
     return Response({
-        'all_runs': reverse('all_runs', request=request, format=format),
+        'all_runs': reverse('all_runs-list', request=request, format=format),
         'average_data': reverse('average_data', request=request, format=format)
     })
 
@@ -40,7 +40,7 @@ class AverageData(APIView):
 
 
 class AllData(viewsets.ModelViewSet):
-    queryset = Run.objects.all()
+    queryset = Run.objects
     serializer_class = RunSerializer
 
     def get_queryset(self):
@@ -49,7 +49,7 @@ class AllData(viewsets.ModelViewSet):
         end_date = self.request.query_params.get('end_date')
         if start_date is not None and end_date is not None:
             queryset = queryset.filter(Q(date__gte=start_date) & Q(date__lte=end_date))
-        return queryset
+        return queryset.all()
 
 
 
