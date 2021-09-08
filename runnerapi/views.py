@@ -25,8 +25,8 @@ def api_root(request, format=None):
 
 class AverageData(APIView):
     def get(self, request):
-        data_all = Run.objects.all()
-        distance_max = Run.objects.order_by('-distance').first()
+        data_all = Run.objects.filter(owner=self.request.user)
+        distance_max = Run.objects.filter(owner=self.request.user).order_by('-distance').first()
         distance_av = int(data_all.aggregate(Avg('distance'))['distance__avg']*1000)
         time_av = int(data_all.aggregate(Avg('time'))['time__avg'])
         speed_av = int(distance_av/time_av)
