@@ -1,18 +1,24 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.reverse import reverse
 from django.db.models import Max, Avg, Q
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from .models import Run
-from .serializers import RunSerializer
+from .serializers import RunSerializer, UserSerializer
 from rest_framework import status
+
 
 @api_view(['GET'])
 def api_root(request, format=None):
     return Response({
         'all_runs': reverse('all_runs-list', request=request, format=format),
-        'average_data': reverse('average_data', request=request, format=format)
+        'average_data': reverse('average_data', request=request, format=format),
+        'user_create': reverse('user_create', request=request, format=format),
+        'users': reverse('user_list', request=request, format=format),
+        'login': reverse('login', request=request, format=format),
     })
 
 
@@ -51,11 +57,32 @@ class AllData(viewsets.ModelViewSet):
             queryset = queryset.filter(Q(date__gte=start_date) & Q(date__lte=end_date))
         return queryset.all()
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
+class UserCreate(generics.CreateAPIView):
+    authentication_classes = ()
+    permission_classes = ()
+    serializer_class = UserSerializer
 
 
+class UserList(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
+
+class LoginView(APIView):
+    permission_classes = ()
+
+    def post(self, request,):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        if user:
+            return Response({'token': user.auth_token.key})
+        else:
+            return Response({'error': 'Wrong Credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
