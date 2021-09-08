@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from .models import Run
 from .serializers import RunSerializer, UserSerializer
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 
 
 @api_view(['GET'])
@@ -50,7 +51,7 @@ class AllData(viewsets.ModelViewSet):
     serializer_class = RunSerializer
 
     def get_queryset(self):
-        queryset = self.queryset
+        queryset = self.queryset.filter(owner=self.request.user)
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
         if start_date is not None and end_date is not None:
@@ -59,6 +60,18 @@ class AllData(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        run = self.queryset.get(pk=self.kwargs["pk"])
+        if not request.user == run.owner:
+            raise PermissionDenied("You can not delete this run.")
+        return super().destroy(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        run = self.queryset.get(pk=self.kwargs["pk"])
+        if not request.user == run.owner:
+            raise PermissionDenied("You can not update this run.")
+        return super().destroy(request, *args, **kwargs)
 
 
 class UserCreate(generics.CreateAPIView):
